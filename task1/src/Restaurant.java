@@ -9,11 +9,11 @@ public class Restaurant {
 
     private final ThreadGroup waiters;
     private final List<Thread> visitors;
-    private final ArrayDeque<Order> orders;
+    private final ArrayDeque<Visitor> visitorsReadyToOrder;
     private int orderCount = 0;
 
     public Restaurant() {
-        this.orders = new ArrayDeque<>();
+        this.visitorsReadyToOrder = new ArrayDeque<>();
         waiters = new ThreadGroup("Официанты");
         visitors = new ArrayList<>();
     }
@@ -57,28 +57,29 @@ public class Restaurant {
         return result;
     }
 
-    public void addOrder(Order order) {
+    public void readyOrder(Visitor visitor) {
+        System.out.println(visitor + " готов сделать заказ");
         if (orderCount < MAX_ORDERS) {
-            synchronized (orders) {
-                orders.add(order);
+            synchronized (visitorsReadyToOrder) {
+                visitorsReadyToOrder.add(visitor);
                 orderCount += 1;
-                orders.notify();
+                visitorsReadyToOrder.notify();
             }
         } else {
             System.out.println("Ресторан больше не может принять заказов!");
-            order.getVisitor().kick();
+            visitor.kick();
         }
     }
 
-    public Order getNextOrder() throws InterruptedException {
-        Order order;
-        synchronized (orders) {
-            while (orders.isEmpty()) {
-                orders.wait();
+    public Visitor getReadyVisitor() throws InterruptedException {
+        Visitor visitor;
+        synchronized (visitorsReadyToOrder) {
+            while (visitorsReadyToOrder.isEmpty()) {
+                visitorsReadyToOrder.wait();
             }
-            order = orders.removeFirst();
+            visitor = visitorsReadyToOrder.removeFirst();
         }
-        return order;
+        return visitor;
     }
 }
 
