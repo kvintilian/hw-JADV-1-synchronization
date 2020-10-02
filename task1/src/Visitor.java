@@ -6,14 +6,12 @@ public class Visitor {
 
     private final Restaurant restaurant;
     private final String name;
-    //    private final Order order;
     private final int timeOutMakeOrder;
     private final int timeOutEat;
 
     public Visitor(Restaurant restaurant, String name) {
         this.restaurant = restaurant;
         this.name = name;
-//        this.order = new Order(this);
         Random random = new Random();
         this.timeOutMakeOrder = random.nextInt(TIMEOUT_MAX - TIMEOUT_MIN) + TIMEOUT_MIN;
         this.timeOutEat = random.nextInt(TIMEOUT_MAX - TIMEOUT_MIN) + TIMEOUT_MIN;
