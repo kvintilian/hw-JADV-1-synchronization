@@ -12,18 +12,21 @@ public class Restaurant {
     private final ArrayDeque<Order> orders;
     private int orderCount = 0;
 
-    public Restaurant() throws InterruptedException {
-        System.out.println("Ресторан открыт!");
+    public Restaurant() {
         this.orders = new ArrayDeque<>();
-        // Выходят официанты
         waiters = new ThreadGroup("Официанты");
+        visitors = new ArrayList<>();
+    }
+
+    public void open() throws InterruptedException {
+        System.out.println("Ресторан открыт!");
+        // Выходят официанты
         for (int i = 0; i < MAX_WAITERS; i++) {
             Waiter waiter = new Waiter(this, "Официант " + (i + 1));
             new Thread(waiters, waiter::doWork, waiter.toString()).start();
         }
 
         // Впускаем кра.. посетителей
-        visitors = new ArrayList<>();
         for (int i = 0; i < MAX_VISITORS; i++) {
             Visitor visitor = new Visitor(this, "Посетитель " + (i + 1));
             Thread thread = new Thread(null, visitor::begin, visitor.toString());

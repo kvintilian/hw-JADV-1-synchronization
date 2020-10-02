@@ -1,4 +1,7 @@
 public class Waiter {
+    private final int TIMEOUT_GET = 800;
+    private final int TIMEOUT_CARRY = 1000;
+
     private final Restaurant restaurant;
     private final String name;
 
@@ -18,9 +21,9 @@ public class Waiter {
                 Order order = restaurant.getNextOrder();
                 Visitor visitor = order.getVisitor();
                 System.out.println(name + " взял заказ у " + visitor);
-                Thread.sleep(1000);
+                Thread.sleep(TIMEOUT_GET);
                 System.out.println(name + " несет заказ");
-                Thread.sleep(3000);
+                Thread.sleep(TIMEOUT_CARRY);
                 synchronized (order) {
                     order.notify();
                     System.out.println(name + " отдал заказ " + visitor);
