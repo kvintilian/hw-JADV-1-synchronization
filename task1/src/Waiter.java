@@ -1,5 +1,3 @@
-import java.beans.PropertyEditorSupport;
-
 public class Waiter {
     private final int TIMEOUT_GET = 800;
     private final int TIMEOUT_CARRY = 1000;

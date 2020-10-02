@@ -24,14 +24,12 @@ public class Visitor {
         }
     }
 
-    private void makeOrder() throws InterruptedException {
+    synchronized void makeOrder() throws InterruptedException {
         System.out.println(name + " в ресторане");
         Thread.sleep(timeOutMakeOrder);
         restaurant.readyOrder(this);
-        synchronized (this) {
-            wait();
-            System.out.println(Thread.currentThread().getName() + " приступил к еде");
-        }
+        wait();
+        System.out.println(Thread.currentThread().getName() + " приступил к еде");
         Thread.sleep(timeOutEat);
         System.out.println(Thread.currentThread().getName() + " вышел из ресторана");
     }
