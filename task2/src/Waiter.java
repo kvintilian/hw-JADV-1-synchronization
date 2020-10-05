@@ -23,10 +23,8 @@ public class Waiter {
                 Thread.sleep(TIMEOUT_GET);
                 System.out.println(name + " несет заказ");
                 Thread.sleep(TIMEOUT_CARRY);
-                synchronized (visitor) {
-                    visitor.notify();
-                    System.out.println(name + " отдал заказ " + visitor);
-                }
+                System.out.println(name + " отдал заказ " + visitor);
+                visitor.receiveOrder();
             }
         } catch (InterruptedException ignored) {
         }

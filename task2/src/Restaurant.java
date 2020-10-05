@@ -1,6 +1,9 @@
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Restaurant {
     private final int MAX_ORDERS = 5;
@@ -11,11 +14,15 @@ public class Restaurant {
     private final List<Thread> visitors;
     private final ArrayDeque<Visitor> visitorsReadyToOrder;
     private int orderCount = 0;
+    private final Lock lock;
+    private final Condition condition;
 
     public Restaurant() {
         this.visitorsReadyToOrder = new ArrayDeque<>();
         waiters = new ThreadGroup("Официанты");
         visitors = new ArrayList<>();
+        lock = new ReentrantLock();
+        condition = lock.newCondition();
     }
 
     public void open() throws InterruptedException {
@@ -60,10 +67,13 @@ public class Restaurant {
     public void readyOrder(Visitor visitor) {
         System.out.println(visitor + " готов сделать заказ");
         if (orderCount < MAX_ORDERS) {
-            synchronized (visitorsReadyToOrder) {
+            lock.lock();
+            try {
                 visitorsReadyToOrder.add(visitor);
                 orderCount += 1;
-                visitorsReadyToOrder.notify();
+                condition.signal();
+            } finally {
+                lock.unlock();
             }
         } else {
             System.out.println("Ресторан больше не может принять заказов!");
@@ -73,11 +83,13 @@ public class Restaurant {
 
     public Visitor getReadyVisitor() throws InterruptedException {
         Visitor visitor;
-        synchronized (visitorsReadyToOrder) {
-            while (visitorsReadyToOrder.isEmpty()) {
-                visitorsReadyToOrder.wait();
-            }
+        lock.lock();
+        try {
+            while (visitorsReadyToOrder.isEmpty())
+                condition.await();
             visitor = visitorsReadyToOrder.removeFirst();
+        } finally {
+            lock.unlock();
         }
         return visitor;
     }
