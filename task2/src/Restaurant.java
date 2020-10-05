@@ -12,28 +12,37 @@ public class Restaurant {
 
     private final ThreadGroup waiters;
     private final List<Thread> visitors;
+    final Cook cook;
+    private Thread cookThread;
     private final ArrayDeque<Visitor> visitorsReadyToOrder;
     private int orderCount = 0;
     private final Lock lock;
-    private final Condition condition;
+    private final Condition conditionVisitors;
+    private final Condition conditionOrders;
 
     public Restaurant() {
         this.visitorsReadyToOrder = new ArrayDeque<>();
         waiters = new ThreadGroup("Официанты");
         visitors = new ArrayList<>();
+        cook = new Cook("Повар");
         lock = new ReentrantLock();
-        condition = lock.newCondition();
+        conditionVisitors = lock.newCondition();
+        conditionOrders = lock.newCondition();
     }
 
     public void open() throws InterruptedException {
         System.out.println("Ресторан открыт!");
+        // Готовим повара
+        cookThread = new Thread(null, cook::doWork);
+        cookThread.start();
+
         // Выходят официанты
         for (int i = 0; i < MAX_WAITERS; i++) {
             Waiter waiter = new Waiter(this, "Официант " + (i + 1));
             new Thread(waiters, waiter::doWork, waiter.toString()).start();
         }
 
-        // Впускаем кра.. посетителей
+        // Впускаем посетителей
         for (int i = 0; i < MAX_VISITORS; i++) {
             Visitor visitor = new Visitor(this, "Посетитель " + (i + 1));
             Thread thread = new Thread(null, visitor::begin, visitor.toString());
@@ -51,6 +60,7 @@ public class Restaurant {
 
     private void closeRestaurant() {
         waiters.interrupt();
+        cookThread.interrupt();
         System.out.println("Ресторан закрыт!");
     }
 
@@ -64,14 +74,14 @@ public class Restaurant {
         return result;
     }
 
-    public void readyOrder(Visitor visitor) {
+    public void readyVisitor(Visitor visitor) {
         System.out.println(visitor + " готов сделать заказ");
         if (orderCount < MAX_ORDERS) {
             lock.lock();
             try {
                 visitorsReadyToOrder.add(visitor);
                 orderCount += 1;
-                condition.signal();
+                conditionVisitors.signal();
             } finally {
                 lock.unlock();
             }
@@ -86,7 +96,7 @@ public class Restaurant {
         lock.lock();
         try {
             while (visitorsReadyToOrder.isEmpty())
-                condition.await();
+                conditionVisitors.await();
             visitor = visitorsReadyToOrder.removeFirst();
         } finally {
             lock.unlock();

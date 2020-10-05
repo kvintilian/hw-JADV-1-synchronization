@@ -4,8 +4,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Visitor {
-    private final int TIMEOUT_MIN = 800;
-    private final int TIMEOUT_MAX = 1500;
+    private final int TIMEOUT_MIN = 500;
+    private final int TIMEOUT_MAX = 2000;
 
     private final Restaurant restaurant;
     private final String name;
@@ -21,8 +21,8 @@ public class Visitor {
         Random random = new Random();
         this.timeOutMakeOrder = random.nextInt(TIMEOUT_MAX - TIMEOUT_MIN) + TIMEOUT_MIN;
         this.timeOutEat = random.nextInt(TIMEOUT_MAX - TIMEOUT_MIN) + TIMEOUT_MIN;
-        lock = new ReentrantLock();
-        condition = lock.newCondition();
+        this.lock = new ReentrantLock();
+        this.condition = lock.newCondition();
     }
 
     void begin() {
@@ -37,7 +37,7 @@ public class Visitor {
         try {
             System.out.println(name + " в ресторане");
             Thread.sleep(timeOutMakeOrder);
-            restaurant.readyOrder(this);
+            restaurant.readyVisitor(this);
             condition.await();
             System.out.println(Thread.currentThread().getName() + " приступил к еде");
             Thread.sleep(timeOutEat);
@@ -56,13 +56,13 @@ public class Visitor {
         }
     }
 
-    @Override
-    public String toString() {
-        return name;
-    }
-
     public void kick() {
         System.out.println(Thread.currentThread().getName() + " вышел из ресторана голодным");
         Thread.currentThread().interrupt();
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }
