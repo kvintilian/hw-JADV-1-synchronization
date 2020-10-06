@@ -34,27 +34,15 @@ public class Restaurant {
             thread.start();
         }
 
-        while (true) {
-            if (!clientsIs()) {
-                closeRestaurant();
-                break;
-            }
-        }
+        for (Thread t : visitors)
+            t.join();
+
+        closeRestaurant();
     }
 
     private void closeRestaurant() {
         waiters.interrupt();
         System.out.println("Ресторан закрыт!");
-    }
-
-    private boolean clientsIs() {
-        boolean result = false;
-        for (Thread visitor : visitors) {
-            if (result = visitor.isAlive()) {
-                break;
-            }
-        }
-        return result;
     }
 
     public void readyOrder(Visitor visitor) {
